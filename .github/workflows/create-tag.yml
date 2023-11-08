@@ -1,0 +1,18 @@
+name: Create Tag on Main
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  create-tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: rickstaa/action-create-tag@v1
+        id: "tag_create"
+        with:
+          tag: v${{ github.run_number }}
+          tag_exists_error: true
+          message: "Tag created automatically"
