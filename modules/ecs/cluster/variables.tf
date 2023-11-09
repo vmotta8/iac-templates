@@ -3,6 +3,11 @@ variable "region" {
   type        = string
 }
 
+variable "lb_name" {
+  description = "The name of the load balancer."
+  type        = string
+}
+
 variable "cluster_name" {
   description = "The name of the cluster."
   type        = string
@@ -15,11 +20,6 @@ variable "vpc_id" {
 
 variable "vpc_cidr_block" {
   description = "The VPC CIDR block."
-  type        = string
-}
-
-variable "lb_name" {
-  description = "The name of the load balancer."
   type        = string
 }
 

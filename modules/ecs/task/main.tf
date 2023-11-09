@@ -27,6 +27,29 @@ resource "aws_lb_listener" "http_listener" {
   }
 }
 
+resource "aws_lb_listener_rule" "example_listener_rule" {
+  listener_arn = var.lb_default_listener_arn
+
+  action {
+    type = "redirect"
+    target_group_arn = aws_lb_target_group.lb_target_group.arn
+    redirect {
+      port        = var.listener_port
+      protocol    = "HTTP"
+      status_code = "HTTP_301"
+      host        = "#{host}"
+      path        = "/#{path}"
+      query       = "#{query}"
+    }
+  }
+
+  condition {
+    path_pattern {
+      values = ["${var.redirect_path}/*"]
+    }
+  }
+}
+
 
 resource "aws_ecs_task_definition" "authorization_task_definition" {
   family                   = var.task_name
@@ -65,8 +88,8 @@ resource "aws_ecs_service" "authorization_ecs_service" {
   deployment_maximum_percent         = 200
 
   network_configuration {
-    subnets          = [var.subnet_private_a_id, var.subnet_private_b_id]
-    security_groups  = [var.ecs_service_sg_id]
+    subnets         = [var.subnet_private_a_id, var.subnet_private_b_id]
+    security_groups = [var.ecs_service_sg_id]
   }
 
   load_balancer {

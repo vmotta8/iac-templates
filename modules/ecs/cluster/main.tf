@@ -2,8 +2,8 @@ resource "aws_security_group" "lb_sg" {
   vpc_id = var.vpc_id
 
   ingress {
-    from_port   = 7000
-    to_port     = 9000
+    from_port   = 0
+    to_port     = 65535
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
     # cidr_blocks = [var.vpc_cidr_block]
@@ -42,8 +42,8 @@ resource "aws_iam_role" "execution_role" {
     Version = "2012-10-17",
     Statement = [
       {
-        Sid       = ""
-        Effect    = "Allow",
+        Sid    = ""
+        Effect = "Allow",
         Principal = {
           Service = "ecs-tasks.amazonaws.com"
         },
@@ -60,8 +60,8 @@ resource "aws_iam_role" "task_role" {
     Version = "2012-10-17",
     Statement = [
       {
-        Sid       = ""
-        Effect    = "Allow",
+        Sid    = ""
+        Effect = "Allow",
         Principal = {
           Service = "ecs-tasks.amazonaws.com"
         },
@@ -79,8 +79,8 @@ resource "aws_iam_policy" "ecr_readonly_policy" {
     Version = "2012-10-17",
     Statement = [
       {
-        Effect   = "Allow",
-        Action   = [
+        Effect = "Allow",
+        Action = [
           "ecr:GetAuthorizationToken",
           "ecr:BatchCheckLayerAvailability",
           "ecr:GetDownloadUrlForLayer",
@@ -112,4 +112,19 @@ resource "aws_lb" "load_balancer" {
   load_balancer_type = "application"
   security_groups    = [aws_security_group.lb_sg.id]
   subnets            = [var.subnet_public_a_id, var.subnet_public_b_id]
+}
+
+resource "aws_lb_listener" "lb_default_listener" {
+  load_balancer_arn = aws_lb.load_balancer.arn
+  port              = 80
+  protocol          = "HTTP"
+
+  default_action {
+    type = "fixed-response"
+    fixed_response {
+      content_type = "text/plain"
+      message_body = "OK"
+      status_code  = "200"
+    }
+  }
 }

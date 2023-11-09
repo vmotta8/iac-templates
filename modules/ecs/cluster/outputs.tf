@@ -17,3 +17,7 @@ output "cluster_id" {
 output "lb_arn" {
   value = aws_lb.load_balancer.arn
 }
+
+output "lb_default_listener_arn" {
+  value = aws_lb_listener.lb_default_listener.arn
+}
