@@ -13,11 +13,3 @@ output "task_role_arn" {
 output "cluster_id" {
   value = aws_ecs_cluster.ecs_cluster.id
 }
-
-output "lb_arn" {
-  value = aws_lb.load_balancer.arn
-}
-
-output "lb_default_listener_arn" {
-  value = aws_lb_listener.lb_default_listener.arn
-}

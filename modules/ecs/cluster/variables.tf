@@ -3,11 +3,6 @@ variable "region" {
   type        = string
 }
 
-variable "lb_name" {
-  description = "The name of the load balancer."
-  type        = string
-}
-
 variable "cluster_name" {
   description = "The name of the cluster."
   type        = string
@@ -18,17 +13,7 @@ variable "vpc_id" {
   type        = string
 }
 
-variable "vpc_cidr_block" {
-  description = "The VPC CIDR block."
-  type        = string
-}
-
-variable "subnet_public_a_id" {
-  description = "The public subnet A ID."
-  type        = string
-}
-
-variable "subnet_public_b_id" {
-  description = "The public subnet B ID."
-  type        = string
+variable "load_balancers_sg" {
+  description = "The load balancers security group ID."
+  type        = list(string)
 }

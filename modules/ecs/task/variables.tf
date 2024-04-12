@@ -23,13 +23,23 @@ variable "subnet_private_b_id" {
   type        = string
 }
 
-variable "lb_arn" {
-  description = "Load balancer arn"
+variable "protocol" {
+  description = "Value of the protocol"
+  type        = string
+
+  validation {
+    condition     = contains(["HTTP", "HTTPS", "BOTH"], var.protocol)
+    error_message = "The protocol must be HTTP, HTTPS, or BOTH."
+  }
+}
+
+variable "ssl_certificate_arn" {
+  description = "The SSL certificate ARN if have https."
   type        = string
 }
 
-variable "lb_default_listener_arn" {
-  description = "Load balancer default listener arn"
+variable "lb_arn" {
+  description = "Load balancer arn"
   type        = string
 }
 
@@ -68,9 +78,15 @@ variable "ecs_service_name" {
   type        = string
 }
 
-variable "image_name" {
-  description = "Image name"
+variable "image_tag" {
+  description = "Image tag"
   type        = string
+}
+
+variable "envs_variables" {
+  description = "Environment variables"
+  type        = map(string)
+  default     = {}
 }
 
 variable "container_name" {
@@ -94,7 +110,7 @@ variable "health_check_path" {
 }
 
 variable "redirect_path" {
-  description = "Redirect path"
+  description = "Redirect path if have listener rules"
   type        = string
 }
 
@@ -111,4 +127,14 @@ variable "memory" {
 variable "desired_count" {
   description = "Desired count"
   type        = number
+}
+
+variable "discovery_name" {
+  description = "Discovery service name"
+  type        = string
+}
+
+variable "http_namespace_arn" {
+  description = "HTTP namespace arn"
+  type        = string
 }

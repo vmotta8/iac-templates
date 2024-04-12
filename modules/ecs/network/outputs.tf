@@ -21,3 +21,7 @@ output "subnet_private_a_id" {
 output "subnet_private_b_id" {
   value = aws_subnet.subnet_private_b.id
 }
+
+output "services_http_namespace_arn" {
+  value = aws_service_discovery_http_namespace.services_http_namespace.arn
+}

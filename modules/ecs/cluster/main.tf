@@ -1,22 +1,3 @@
-resource "aws_security_group" "lb_sg" {
-  vpc_id = var.vpc_id
-
-  ingress {
-    from_port   = 0
-    to_port     = 65535
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-    # cidr_blocks = [var.vpc_cidr_block]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-}
-
 resource "aws_security_group" "ecs_service_sg" {
   vpc_id = var.vpc_id
 
@@ -24,7 +5,14 @@ resource "aws_security_group" "ecs_service_sg" {
     from_port       = 0
     to_port         = 0
     protocol        = "-1"
-    security_groups = [aws_security_group.lb_sg.id]
+    security_groups = var.load_balancers_sg
+  }
+
+  ingress {
+    from_port = 0
+    to_port   = 65535
+    protocol  = "tcp"
+    self      = true
   }
 
   egress {
@@ -32,6 +20,11 @@ resource "aws_security_group" "ecs_service_sg" {
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    "infra" = "ecs"
+    "name"  = "ecs_service_sg"
   }
 }
 
@@ -51,6 +44,11 @@ resource "aws_iam_role" "execution_role" {
       }
     ]
   })
+
+  tags = {
+    "infra" = "ecs"
+    "name"  = "ecs-execution-role"
+  }
 }
 
 resource "aws_iam_role" "task_role" {
@@ -69,6 +67,11 @@ resource "aws_iam_role" "task_role" {
       }
     ]
   })
+
+  tags = {
+    "infra" = "ecs"
+    "name"  = "ecs-task-role"
+  }
 }
 
 resource "aws_iam_policy" "ecr_readonly_policy" {
@@ -95,36 +98,53 @@ resource "aws_iam_policy" "ecr_readonly_policy" {
       },
     ],
   })
+
+  tags = {
+    "infra" = "ecs"
+    "name"  = "ECRReadOnlyPolicy"
+  }
 }
 
-resource "aws_iam_role_policy_attachment" "execution_role_attachment" {
+resource "aws_iam_policy" "cloudwatch_logs_policy" {
+  name        = "CloudWatchLogsPolicy"
+  description = "Allows access to CloudWatch Logs"
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Effect = "Allow",
+        Action = [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents",
+        ],
+        Resource = "*",
+      },
+    ],
+  })
+
+  tags = {
+    "infra" = "ecs"
+    "name"  = "CloudWatchLogsPolicy"
+  }
+}
+
+resource "aws_iam_role_policy_attachment" "execution_role_ecr_policy_attachment" {
   policy_arn = aws_iam_policy.ecr_readonly_policy.arn
+  role       = aws_iam_role.execution_role.name
+}
+
+resource "aws_iam_role_policy_attachment" "execution_role_logs_policy_attachment" {
+  policy_arn = aws_iam_policy.cloudwatch_logs_policy.arn
   role       = aws_iam_role.execution_role.name
 }
 
 resource "aws_ecs_cluster" "ecs_cluster" {
   name = var.cluster_name
-}
 
-resource "aws_lb" "load_balancer" {
-  name               = var.lb_name
-  internal           = false
-  load_balancer_type = "application"
-  security_groups    = [aws_security_group.lb_sg.id]
-  subnets            = [var.subnet_public_a_id, var.subnet_public_b_id]
-}
-
-resource "aws_lb_listener" "lb_default_listener" {
-  load_balancer_arn = aws_lb.load_balancer.arn
-  port              = 80
-  protocol          = "HTTP"
-
-  default_action {
-    type = "fixed-response"
-    fixed_response {
-      content_type = "text/plain"
-      message_body = "OK"
-      status_code  = "200"
-    }
+  tags = {
+    "infra" = "ecs"
+    "name"  = "ecs_cluster"
   }
 }
